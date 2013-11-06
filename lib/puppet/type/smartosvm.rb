@@ -39,7 +39,7 @@ module Puppet
       newvalues("joyent", "joyent-minimal", "kvm")
     end
 
-    newparam(:dataset_uuid) do
+    newparam(:image_uuid) do
       desc "This should be a UUID identifying the image for the VM if
            a VM was created from an image. NOTICE: This field is named
            'dataset_uuid' on creation (vmadm create) and 'image_uuid'
@@ -55,10 +55,19 @@ end
            will have no effect."
       newvalues(/[[:word:]]/)
     end
+
+#     # we need this to later manipulate zfs root settings 
+#     newparam(:zpool) do
+#       desc "This defines which ZFS pool the VM's zone dataset will be
+#            created in. For OS VMs, this dataset is where all the data
+#            in the zone will live. For KVM VMs, this is only used by
+#           the zone shell that the VM runs in."
+#       newvalues(/[[:word:]]/)
+#     end
         
-#----------------------------------------------------------------------#
-# properties - mutable
-#----------------------------------------------------------------------#
+# #----------------------------------------------------------------------#
+# # properties - mutable
+# #----------------------------------------------------------------------#
 
     newproperty(:cpu_cap) do
       desc "Sets a limit on the amount of CPU time that can be used by
@@ -79,6 +88,8 @@ end
       newvalues(/[[:digit:]]+/)
     end
 
+    #ATTENTION: This field does not seem to be gettable, probalby
+    #workaround via zonecfg or zoneadm necessary
     newproperty(:fs_allowed) do
       desc "This option allows you to specify filesystem types this
              zone is allowed to mount.  For example on a zone for
@@ -88,6 +99,8 @@ end
       newvalues(:pcfs,:ufs,:tmpfs)
     end
 
+    #ATTENTION: Implementation for zones needs to be implemented
+    #inside of zone
     newproperty(:hostname) do
       desc "For KVM VMs, this value will be handed out via DHCP as the
             hostname for the VM. For OS VMs, this value will get set
@@ -95,6 +108,10 @@ end
             WILL DO NOTHING."
       newvalues(/[[:word:]]/)
     end
+
+    # ATTENTION: NOTE THAT PUPPET APPLIES CHANGED PROPERTIES IN THE
+    # ORDER IN WHICH PROPERTIES ARE DEFINED - THIS IS CURRENTLY A
+    # PROBLEM, BECAUSE THE ORDER MUST FULLFILL P < L < V AT ALL TIMES.
 
     newproperty(:max_locked_memory) do
       desc "GUARANTEED PHYICAL MEM -The total amount of physical
@@ -109,10 +126,14 @@ end
       newvalues(/[[:digit:]]/)
     end
 
+    # It is sufficient to validate the target constraint for memory
+    # settings once.
     newproperty(:max_physical_memory) do
       desc "The maximum amount of phyiscal memory on the host that the
-            VM is allowed to use. For KVM VMs, this value cannot be
-            lower than 'ram' and should be ram + 1024."
+            VM is allowed to use. This value CANNOT BE LOWER THAN
+            MAX_LOCKED_MEMORY AND CANNOT BE HIGHER THAN MAX_SWAP. For
+            KVM vMs, this value cannot be lower than 'ram' and should
+            be ram + 1024." 
       newvalues(/[[:digit:]]/)
     end
 
@@ -145,9 +166,11 @@ end
            VMs. If one VM has a value X and another VM has a value 2X,
            the machine with the X value will have some of its IO
            throttled when both try to use all available IO."
-      newvalue(/[[:digit:]]/)
+      newvalues(/[[:digit:]]/)
     end
 
+    #ATTENTION: This field does not seem to be gettable, probalby
+    #workaround via zfs get necessary
     newproperty(:zfs_root_compression) do
       desc "Specifies a compression algorithm used for this VM's root
             dataset. This option affects only the zoneroot
@@ -160,9 +183,11 @@ end
             existing data compress.
 
             ONLY FOR ZONES."
-      newvalue(:on,:off,:lzjb,:gzip,/gzip-[[:digit]]/,:zle)
+      newvalues(:on,:off,:lzjb,:gzip,/gzip-[[:digit]]/,:zle)
     end
 
+    #ATTENTION: This field does not seem to be gettable, probably
+    #workaround via zfs get necessary
     newproperty(:zfs_root_recsize) do
       desc "Specifies a suggested block size for files in the root
             file system. This property is designed solely for use with
@@ -181,20 +206,22 @@ end
             setting is changed; existing files are unaffected. 
 
             ONLY FOR ZONES."
-      newvalue(/[[:digit:]]/)
+      newvalues(/[[:digit:]]/)
 
-      validate do |value|
-        integer = Integer(value)
-        if $integer < 512
-          raise ArgumentError,
-          "zfs recordsize MUST be equal or greater than 512 ( recsize >= 512)"
-        elsif $integer % 2 != 0
-          "zfs recordsize MUST be power of two ( recsize =! x^2)"
-        else
-          super
-        end
-      end
-    end
+#       validate do |value|
+#         integer = value.to_i
+#         if $integer < 512
+#           raise ArgumentError,
+#           "zfs recordsize MUST be equal or greater than 512 ( recsize >= 512)"
+#         elsif $integer % 2 != 0
+#           "zfs recordsize MUST be power of two ( recsize =! x^2)"
+#         else
+#           super
+#         end
+#       end
+     end
+
+   
 
 #----------------------------------------------------------------------#
 # networking interfaces and properties to be properly implemented

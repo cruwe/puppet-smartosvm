@@ -1,0 +1,18 @@
+* FEATURES
+
+** General
+
+- [ ] start/stop stuff -> probably just vmadm boot/vmadm stop
+- [ ] order of memory settings changes (phys <= lock <= virt)
+- [ ] make update ops flushable
+- [ ] proper naming of memory variables phys, lock and virt
+
+
+
+** KVM machines
+
+- [ ] 
+
+** OS machines
+
+- [ ] zfs hooks
