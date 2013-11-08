@@ -65,6 +65,20 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
     @property_hash[:ensure] == :present
   end
 
+  def state
+    @property_hash[:state]
+  end
+
+  def state=(value)
+    case value 
+    when :running
+      vmadm(:boot, uuid)
+    when stopped
+      vmadm(:stop, uuid)
+    end
+  end
+
+
 #----------------------------------------------------------------------#
 # parameters - immutable
 #----------------------------------------------------------------------#

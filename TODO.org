@@ -1,18 +1,31 @@
-* FEATURES
 
-** General
+* MILESTONES
 
-- [ ] start/stop stuff -> probably just vmadm boot/vmadm stop
+** 0.1.0 - operable for zone OS virtualized machines
+
+- [X] exists?
+- [X] enabled?
+- [X] vmadm properties getter/setter
 - [ ] order of memory settings changes (phys <= lock <= virt)
-- [ ] make update ops flushable
+- [ ] zfs properties inaccesible via vmadm
+- [ ] documentation
+- [ ] puppet package structure
+
+** 0.2.0 - operable for KVM virtualized machines
+
+** 0.3.0 - infrastructure operations 
+
+- [ ] archive VMs
+
+
+* VARIOUS FEATURE REQUESTS
+
 - [ ] proper naming of memory variables phys, lock and virt
+- [ ] make update ops flushable
 
 
+* ASIDES
 
-** KVM machines
-
-- [ ] 
-
-** OS machines
-
-- [ ] zfs hooks
+- [ ] find out curious vmadm behaviour when given incosistent memory
+  values, to commit sth wich is valid, but not what operator requested
+  in BAD IDEA (TM)

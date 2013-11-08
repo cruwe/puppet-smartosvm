@@ -3,12 +3,21 @@ module Puppet
 
     ensurable
 
+    feature :enableable, "The provider can enable and disable the service",
+            :methods => [:disable,
+                         :enable,
+                         :enabled?]
+
+
+
 #----------------------------------------------------------------------#
 # state property
 #----------------------------------------------------------------------#
 
     newproperty(:state) do
-      desc "This property exposes the current state of a VM."
+      desc "This property exposes the current state of a VM. A VM
+           retains it's status over machine reboots."
+      newvalues(:running,:stopped)
     end
 
 #----------------------------------------------------------------------#
