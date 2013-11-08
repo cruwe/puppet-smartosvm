@@ -1,0 +1,37 @@
+
+* MILESTONES
+
+** 0.1.0 - operable for zone OS virtualized machines
+
+- [X] exists?
+- [X] enabled?
+- [X] vmadm properties getter/setter
+- [ ] valid memory settings change (phys <= lock <= virt)
+- [X] zfs properties inaccesible via vmadm
+- [ ] documentation
+- [ ] puppet package structure
+
+** 0.2.0 - operable for KVM virtualized machines
+
+** 0.3.0 - infrastructure operations 
+
+- [ ] archive VMs
+
+
+* VARIOUS FEATURE REQUESTS
+
+- [ ] proper naming of memory variables phys, lock and virt
+- [ ] make update ops flushable
+- [ ] ZFS checksum property
+- [ ] ZFS copies property
+- [ ] ZFS dedup property
+- [ ] ZFS atime property
+- [ ] ZFS checksum property
+
+
+
+* ASIDES
+
+- [ ] find out curious vmadm behaviour when given incosistent memory
+  values, to commit sth wich is valid, but not what operator requested
+  in BAD IDEA (TM)
