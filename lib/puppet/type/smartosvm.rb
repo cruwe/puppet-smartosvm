@@ -65,14 +65,14 @@ end
       newvalues(/[[:word:]]/)
     end
 
-#     # we need this to later manipulate zfs root settings 
-#     newparam(:zpool) do
-#       desc "This defines which ZFS pool the VM's zone dataset will be
-#            created in. For OS VMs, this dataset is where all the data
-#            in the zone will live. For KVM VMs, this is only used by
-#           the zone shell that the VM runs in."
-#       newvalues(/[[:word:]]/)
-#     end
+    newparam(:zpool) do
+      desc "This defines which ZFS pool the VM's zone dataset will be
+           created in. For OS VMs, this dataset is where all the data
+           in the zone will live. For KVM VMs, this is only used by
+          the zone shell that the VM runs in."
+      newvalues(/[[:word:]]/)
+      defaultto 'zones'
+    end
         
 # #----------------------------------------------------------------------#
 # # properties - mutable
@@ -118,10 +118,8 @@ end
       newvalues(/[[:word:]]/)
     end
 
-    # ATTENTION: NOTE THAT PUPPET APPLIES CHANGED PROPERTIES IN THE
-    # ORDER IN WHICH PROPERTIES ARE DEFINED - THIS IS CURRENTLY A
-    # PROBLEM, BECAUSE THE ORDER MUST FULLFILL P < L < V AT ALL TIMES.
-
+    # Validate the target constraint for memory settings is necessary
+    # once.
     newproperty(:max_locked_memory) do
       desc "GUARANTEED PHYICAL MEM -The total amount of physical
             memory in the host than can be locked for this VM. This
@@ -135,8 +133,8 @@ end
       newvalues(/[[:digit:]]/)
     end
 
-    # It is sufficient to validate the target constraint for memory
-    # settings once.
+    # Validate the target constraint for memory settings is necessary
+    # once. 
     newproperty(:max_physical_memory) do
       desc "The maximum amount of phyiscal memory on the host that the
             VM is allowed to use. This value CANNOT BE LOWER THAN
@@ -146,6 +144,8 @@ end
       newvalues(/[[:digit:]]/)
     end
 
+    # Validate the target constraint for memory settings is necessary
+    # once. 
     newparam(:max_swap) do
       desc "MAX VIRTUAL MEMORY - The maximum amount of virtual memory
             the VM is allowed to  use.  This cannot be lower than
@@ -178,8 +178,6 @@ end
       newvalues(/[[:digit:]]/)
     end
 
-    #ATTENTION: This field does not seem to be gettable, probalby
-    #workaround via zfs get necessary
     newproperty(:zfs_root_compression) do
       desc "Specifies a compression algorithm used for this VM's root
             dataset. This option affects only the zoneroot
@@ -195,8 +193,6 @@ end
       newvalues(:on,:off,:lzjb,:gzip,/gzip-[[:digit]]/,:zle)
     end
 
-    #ATTENTION: This field does not seem to be gettable, probably
-    #workaround via zfs get necessary
     newproperty(:zfs_root_recsize) do
       desc "Specifies a suggested block size for files in the root
             file system. This property is designed solely for use with
@@ -215,22 +211,9 @@ end
             setting is changed; existing files are unaffected. 
 
             ONLY FOR ZONES."
-      newvalues(/[[:digit:]]/)
-
-#       validate do |value|
-#         integer = value.to_i
-#         if $integer < 512
-#           raise ArgumentError,
-#           "zfs recordsize MUST be equal or greater than 512 ( recsize >= 512)"
-#         elsif $integer % 2 != 0
-#           "zfs recordsize MUST be power of two ( recsize =! x^2)"
-#         else
-#           super
-#         end
-#       end
      end
 
-   
+
 
 #----------------------------------------------------------------------#
 # networking interfaces and properties to be properly implemented

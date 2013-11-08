@@ -3,13 +3,14 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
 
   commands :vmadm => 'vmadm'
   commands :shell => 'bash'
+  commands :zfs   => 'zfs'
 
 #----------------------------------------------------------------------#
 # parsers to get parameters and properties 
 #----------------------------------------------------------------------#
   
   def self.instances
-    $optionsstring = 'alias,uuid,state,brand,image_uuid,dns_domain,cpu_cap,cpu_shares,hostname,max_locked_memory,max_lwps,max_physical_memory,max_swap,quota,tmpfs,zfs_io_priority'
+    $optionsstring = 'alias,uuid,state,brand,image_uuid,dns_domain,cpu_cap,cpu_shares,hostname,max_locked_memory,max_lwps,max_physical_memory,max_swap,quota,tmpfs,zfs_io_priority,zpool'
 
     vms = vmadm(:list, '-Hp', '-o', $optionsstring)
     vms.split("\n").collect do |line| aliasname,
@@ -27,7 +28,8 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
                                       max_swap,
                                       quota,
                                       tmpfs,
-                                      zfs_io_priority = line.split(":")
+                                      zfs_io_priority,
+                                      zpool = line.split(":")
       new(  :aliasname => aliasname,
             :ensure => :present,
             :uuid => uuid,
@@ -44,7 +46,8 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
             :max_swap => max_swap,
             :quota => quota,
             :tmpfs => tmpfs,
-            :zfs_io_priority => zfs_io_priority)
+            :zfs_io_priority => zfs_io_priority,
+            :zpool => zpool)
     end
   end
 
@@ -216,17 +219,21 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
     vmadm(:update, @property_hash[:uuid], 'zfs_io_priority=' + value.to_s)
   end
 
-  # this needs to be implemented using zfs
-  # def zfs_root_compression
-  # end
-  # def zfs_root_compression=(value)
-  # end
+  #this needs to be reimplemented so that zfs is not executed every time
+  def zfs_root_compression
+    zfs(:get, '-Ho', 'value', 'compression', zpool.to_s + '/' + uuid.to_s)
+  end
+  def zfs_root_compression=(value)
+    zfs(:set, 'compression=' + value.to_s, zpool.to_s + '/' + uuid.to_s)
+  end
 
-  # this needs to be implemented using zfs
-  # def zfs_root_recsize
-  # end
-  # def zfs_root_recsize=(value)
-  # end
+  #this needs to be reimplemented so that zfs is not executed every time
+  def zfs_root_recsize
+    zfs(:get, '-Ho', 'value', 'recordsize', zpool.to_s + '/' + uuid.to_s)
+  end
+  def zfs_root_recsize=(value)
+    zfs(:set, 'recordsize=' + value.to_s, zpool.to_s + '/' + uuid.to_s)
+  end
 
 
 #----------------------------------------------------------------------#

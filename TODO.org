@@ -6,8 +6,8 @@
 - [X] exists?
 - [X] enabled?
 - [X] vmadm properties getter/setter
-- [ ] order of memory settings changes (phys <= lock <= virt)
-- [ ] zfs properties inaccesible via vmadm
+- [ ] valid memory settings change (phys <= lock <= virt)
+- [X] zfs properties inaccesible via vmadm
 - [ ] documentation
 - [ ] puppet package structure
 
@@ -22,6 +22,12 @@
 
 - [ ] proper naming of memory variables phys, lock and virt
 - [ ] make update ops flushable
+- [ ] ZFS checksum property
+- [ ] ZFS copies property
+- [ ] ZFS dedup property
+- [ ] ZFS atime property
+- [ ] ZFS checksum property
+
 
 
 * ASIDES
