@@ -3,13 +3,26 @@
 
 ** 0.1.0 - operable for zone OS virtualized machines
 
+*** primaries
+
 - [X] exists?
 - [X] enabled?
+- [ ] destroy method ???
+
+*** secondaries
+
 - [X] vmadm properties getter/setter
-- [ ] valid memory settings change (phys <= lock <= virt)
+- [X] valid memory settings change (lock <= phys <= virt)
 - [X] zfs properties inaccesible via vmadm
 - [ ] documentation
 - [ ] puppet package structure
+- [ ] netif integration
+- [ ] are all defaults sensible
+
+
+*** errors
+
+- [X] max_swap without function, parameter -> property
 
 ** 0.2.0 - operable for KVM virtualized machines
 
@@ -27,7 +40,9 @@
 - [ ] ZFS dedup property
 - [ ] ZFS atime property
 - [ ] ZFS checksum property
-
+- [ ] imgadm dependency resoultion if image is missing on hosting
+  machine
+- [ ] replace image uuid with "speaking" name of image
 
 
 * ASIDES
@@ -35,3 +50,4 @@
 - [ ] find out curious vmadm behaviour when given incosistent memory
   values, to commit sth wich is valid, but not what operator requested
   in BAD IDEA (TM)
+- [ ] why is joyent symbol???

@@ -118,8 +118,6 @@ end
       newvalues(/[[:word:]]/)
     end
 
-    # Validate the target constraint for memory settings is necessary
-    # once.
     newproperty(:max_locked_memory) do
       desc "GUARANTEED PHYICAL MEM -The total amount of physical
             memory in the host than can be locked for this VM. This
@@ -133,8 +131,6 @@ end
       newvalues(/[[:digit:]]/)
     end
 
-    # Validate the target constraint for memory settings is necessary
-    # once. 
     newproperty(:max_physical_memory) do
       desc "The maximum amount of phyiscal memory on the host that the
             VM is allowed to use. This value CANNOT BE LOWER THAN
@@ -144,9 +140,7 @@ end
       newvalues(/[[:digit:]]/)
     end
 
-    # Validate the target constraint for memory settings is necessary
-    # once. 
-    newparam(:max_swap) do
+    newproperty(:max_swap) do
       desc "MAX VIRTUAL MEMORY - The maximum amount of virtual memory
             the VM is allowed to  use.  This cannot be lower than
             max_physical_memory." 
