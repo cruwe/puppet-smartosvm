@@ -210,25 +210,76 @@ end
 
 
 #----------------------------------------------------------------------#
-# networking interfaces and properties to be properly implemented
-# later
+# networking interfaces and properties 
 #----------------------------------------------------------------------#
 
-    newparam(:resolvers) do
-      desc ""
+    newproperty(:nics_0_tag) do
+      desc "This option for a NIC determines which host NIC the VMs
+           NIC will be  attached to. The value can be either a nic tag
+           as listed in the 'NIC Names' field in `sysinfo`, or an
+           etherstub or device name." 
     end
 
-    newparam(:ip) do # -> property
-      desc ""
+
+    newproperty(:nics_0_ip) do
+      desc "IPv4 unicast address for this NIC, or 'dhcp' to obtain
+           address via DHCP."
     end
 
-    newparam(:netmask) do
-      desc ""
+
+
+    newproperty(:nics_0_netmask) do
+      desc "The netmask for this NIC's network (not required if using
+           DHCP)" 
     end
 
-    newparam(:gateway) do
-      desc ""
+
+    newproperty(:nics_0_gateway) do
+      desc "The IPv4 router on this network (not required if using
+           DHCP)" 
     end        
+
+    #.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-
+
+    newproperty(:nics_1_tag) do
+      desc "This option for a NIC determines which host NIC the VMs
+           NIC will be  attached to. The value can be either a nic tag
+           as listed in the 'NIC Names' field in `sysinfo`, or an
+           etherstub or device name. For purposes of this provider,
+           this property is not user settable, but will default to
+           net<X>" 
+    end
+
+
+    newproperty(:nics_1_ip) do
+      desc "IPv4 unicast address for this NIC, or 'dhcp' to obtain
+           address via DHCP."
+    end
+
+
+
+    newproperty(:nics_1_netmask) do
+      desc "The netmask for this NIC's network (not required if using
+           DHCP)" 
+    end
+
+
+    newproperty(:nics_1_gateway) do
+      desc "The IPv4 router on this network (not required if using
+           DHCP)" 
+    end        
+
+    #.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-
+
+    # will stay parameter as this setting is more sensibly managed
+    # from inside a virtual machine, but necessary at first for
+    # machine operation
+    newparam(:resolvers) do
+      desc "For OS VMs, this value sets the resolvers which get put
+           into /etc/resolv.conf. For KVM VMs these will get passed as
+           the resolvers with DHCP responses."
+    end
+
 
   end
 end

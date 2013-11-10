@@ -10,9 +10,9 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
 #----------------------------------------------------------------------#
   
   def self.instances
-    $optionsstring = 'alias,uuid,state,brand,image_uuid,dns_domain,cpu_cap,cpu_shares,hostname,max_locked_memory,max_lwps,max_physical_memory,max_swap,quota,tmpfs,zfs_io_priority,zpool'
+    $optionsstring = 'alias,uuid,state,brand,image_uuid,dns_domain,cpu_cap,cpu_shares,hostname,max_locked_memory,max_lwps,max_physical_memory,max_swap,quota,tmpfs,zfs_io_priority,zpool,nics.0.nic_tag,nics.0.mac,nics.0.ip,nics.0.netmask,nics.0.gateway,nics.0.dhcp_server,nics.1.nic_tag,nics.1.mac,nics.1.ip,nics.1.netmask,nics.1.gateway,nics.1.dhcp_server'
 
-    vms = vmadm(:list, '-Hp', '-o', $optionsstring)
+    vms = vmadm(:list, '-H', '-o', $optionsstring)
     vms.split("\n").collect do |line| aliasname,
                                       uuid,
                                       state,
@@ -29,7 +29,20 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
                                       quota,
                                       tmpfs,
                                       zfs_io_priority,
-                                      zpool = line.split(":")
+                                      zpool,
+                                      nics_0_nic_tag,
+                                      nics_0_mac,
+                                      nics_0_ip,
+                                      nics_0_netmask,
+                                      nics_0_gateway,
+                                      nics_0_dhcp_server,
+                                      nics_1_nic_tag,
+                                      nics_1_mac,
+                                      nics_1_ip,
+                                      nics_1_netmask,
+                                      nics_1_gateway,
+                                      nics_1_dhcp_server = line.split("\s")
+
       new(  :aliasname => aliasname,
             :ensure => :present,
             :uuid => uuid,
@@ -47,7 +60,19 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
             :quota => quota,
             :tmpfs => tmpfs,
             :zfs_io_priority => zfs_io_priority,
-            :zpool => zpool)
+            :zpool => zpool,
+            :nics_0_nics_tag => nics_0_nic_tag,
+            :nics_0_mac => nics_0_mac,
+            :nics_0_ip => nics_0_ip,
+            :nics_0_netmask => nics_0_netmask,
+            :nics_0_gateway => nics_0_gateway,
+            :nics_0_dhcp_server => nics_0_dhcp_server,
+            :nics_1_nics_tag => nics_1_nic_tag,
+            :nics_1_mac => nics_1_mac,
+            :nics_1_ip => nics_1_ip,
+            :nics_1_netmask => nics_1_netmask,
+            :nics_1_gateway => nics_1_gateway,
+            :nics_1_dhcp_server => nics_1_dhcp_server  )
     end
   end
 
@@ -99,6 +124,7 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
    def flush
      vm_settings = []
 
+     # anything to do?
      if @property_flush
 
        # if the flush method applies any memory changes, validate them
@@ -106,6 +132,7 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
          validate_memory 
        end
 
+       #collect flushable vm_settings
        if @property_flush[:max_physical_memory]
          new = 'max_physical_memory=' + @property_flush[:max_physical_memory]
          vm_settings << new
@@ -121,12 +148,136 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
          vm_settings << new
        end
 
+
+       #commit everything with vmadm
        unless vm_settings.empty?
          vmadm(:update, @property_hash[:uuid], vm_settings)
        end
 
-#     @property_hash = resource.to_hash
+       #---------------------------------------------------------------#
+       # NIC code
+       #
+       # json ops make things difficult - first on 0, then 1
+       # 1) up or create? primary key if up, mac, if create, IF
+       # 2) walk the flush and add to json
+       # 3) commit the json
+       #---------------------------------------------------------------#
+
+       nic_0_json = ""
+       nic_0_json_file = '/tmp/' + uuid + '.net0.def' 
+       nic_0_touched = false
+
+       nic_1_json = ""
+       nic_1_json_file = '/tmp/' + uuid + '.net1.def' 
+       nic_1_touched = false
+
+       #updating or creating?
+       if nics_0_mac != '-'
+         nic_0_json += '{ \"update_nics\": [ {'
+         nic_0_json += '\"mac\": \"' + nics_0_mac + '\"'
+       else
+         nic_0_json += '{ \"add_nics\": [ {'
+         nic_0_json += '\"interface\": \"net0\"'
+       end
+
+       if @property_flush[:nics_0_nic_tag]
+         new = ', \"nic_tag\": \"' + @property_flush[:nics_0_nic_tag] + '\"'
+         nic_0_json += new
+         nic_0_touched = true
+       end
+
+
+       if @property_flush[:nics_0_ip]
+         new = ', \"ip\": \"' + @property_flush[:nics_0_ip] + '\"'
+         nic_0_json += new
+         nic_0_touched = true
+       end
+
+
+       if @property_flush[:nics_0_netmask]
+         new = ', \"netmask\": \"' + @property_flush[:nics_0_netmask] + '\"'
+         nic_0_json += new
+         nic_0_touched = true
+       end
+
+
+       if @property_flush[:nics_0_gateway]
+         new = ', \"gateway\": \"' + @property_flush[:nics_0_gateway] + '\"'
+         nic_0_json += new
+         nic_0_touched = true
+       end
+
+
+       if @property_flush[:nics_0_dhcp_server]
+         new = ', \"dhcp_server\": \"' + @property_flush[:nics_0_dhcp_server] + '\"'
+         nic_0_json += new
+         nic_0_touched = true
+       end
+
+        
+       # if the nic has been touched, commit
+       if nic_0_touched == true
+         notice("i am here" + nic_0_json_file)
+         nic_0_json += '} ] }'
+         shell('-c', 'echo ' + nic_0_json + ' > ' + nic_0_json_file)
+         shell('-c', 'vmadm update ' + uuid + ' -f ' + nic_0_json_file)
+       end
+
+
+       if nics_1_mac != '-'
+         nic_1_json += '{ \"update_nics\": [ {'
+         nic_1_json += '\"mac\": \"' + nics_1_mac + '\"'
+       else
+         notice("i am here")
+         nic_1_json += '{ \"add_nics\": [ {'
+         nic_1_json += '\"interface\": \"net1\"'
+       end
+
+       if @property_flush[:nics_1_nic_tag]
+         new = ', \"nic_tag\": \"' + @property_flush[:nics_1_nic_tag] + '\"'
+         nic_1_json += new
+         nic_1_touched = true
+       end
+
+
+       if @property_flush[:nics_1_ip]
+         new = ', \"ip\": \"' + @property_flush[:nics_1_ip] + '\"'
+         nic_1_json += new
+         nic_1_touched = true
+       end
+
+
+       if @property_flush[:nics_1_netmask]
+         new = ', \"netmask\": \"' + @property_flush[:nics_1_netmask] + '\"'
+         nic_1_json += new
+         nic_1_touched = true
+       end
+
+
+       if @property_flush[:nics_1_gateway]
+         new = ', \"gateway\": \"' + @property_flush[:nics_1_gateway] + '\"'
+         nic_1_json += new
+         nic_1_touched = true
+       end
+
+
+       if @property_flush[:nics_1_dhcp_server]
+         new = ', \"dhcp_server\": \"' + @property_flush[:nics_1_dhcp_server] + '\"'
+         nic_1_json += new
+         nic_1_touched = true
+       end
+       
+        
+       # if the nic has been touched, commit
+       if nic_1_touched == true
+         notice("i am here" + nic_1_json_file)
+         nic_1_json += '} ] }'
+         shell('-c', 'echo ' + nic_1_json + ' > ' + nic_1_json_file)
+         shell('-c', 'vmadm update ' + uuid + ' -f ' + nic_1_json_file)
+       end
+
      end
+     #if nothing to do, do nothing
    end
 
 #----------------------------------------------------------------------#
@@ -294,18 +445,98 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
 # netif related props
 #----------------------------------------------------------------------#
 
-  def ip
-    @property_hash[:ip]
+
+  def nics_0_nic_tag
+    @property_hash[:nics_0_nic_tag]
+  end
+  def nics_0_nic_tag=(value)
+    @property_flush[:nics_0_tag] = value
   end
 
-  def netmask
-    @property_hash[:netmask]
+
+  def nics_0_mac
+    @property_hash[:nics_0_mac]
   end
 
-  def gateway
-    @property_hash[:gateway]
+
+  def nics_0_ip
+    @property_hash[:nics_0_ip]
+  end
+  def nics_0_ip=(value)
+    @property_flush[:nics_0_ip] = value
   end
 
+
+  def nics_0_netmask
+    @property_hash[:nics_0_netmask]
+  end
+  def nics_0_netmask=(value)
+    @property_flush[:nics_0_netmask] = value
+  end
+
+
+  def nics_0_gateway
+    @property_hash[:nics_0_gateway]
+  end
+  def nics_0_gateway=(value)
+    @property_flush[:nics_0_gateway] = value
+  end
+
+
+  def nics_0_dhcp_server
+    @property_hash[:nics_0_dhcp_server]
+  end
+  def nics_0_dhcp_server=(value)
+    @property_flush[:nics_0_dhcp_server] = value
+  end
+
+    #.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-
+
+  def nics_1_nic_tag
+    @property_hash[:nics_1_nic_tag]
+  end
+  def nics_1_nic_tag=(value)
+    @property_flush[:nics_1_tag] = value
+  end
+
+
+  def nics_1_mac
+    @property_hash[:nics_1_mac]
+  end
+
+
+  def nics_1_ip
+    @property_hash[:nics_1_ip]
+  end
+  def nics_1_ip=(value)
+    @property_flush[:nics_1_ip] = value
+  end
+
+
+  def nics_1_netmask
+    @property_hash[:nics_1_netmask]
+  end
+  def nics_1_netmask=(value)
+    @property_flush[:nics_1_netmask] = value
+  end
+
+
+  def nics_1_gateway
+    @property_hash[:nics_1_gateway]
+  end
+  def nics_1_gateway=(value)
+    @property_flush[:nics_1_gateway] = value
+  end
+
+
+  def nics_1_dhcp_server
+    @property_hash[:nics_1_dhcp_server]
+  end
+  def nics_1_dhcp_server=(value)
+    @property_flush[:nics_1_dhcp_server] = value
+  end
+
+    #.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-
 
   def resolvers
     @property_hash[:resolver]
@@ -320,23 +551,23 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
   #TODO: find out why all calls to @resource return BUT
   #@resource[:aliasname] and why ONLY joyent is evaluated as symbol 
 
-def create
+  def create
     $zonedefjson = '{'
     $zonedefjson += '\"alias\": \"' + resource[:aliasname] + '\",'
     $zonedefjson += '\"hostname\" : \"' + resource[:aliasname] + "." + @resource[:dns_domain] +  '\",' 
-     $zonedefjson += '\"brand\" : \"' + @resource[:brand].to_s + '\",'
-     $zonedefjson += '\"dataset_uuid\" : \"' + @resource[:image_uuid] + '\",'
-  
+    $zonedefjson += '\"brand\" : \"' + @resource[:brand].to_s + '\",'
+    $zonedefjson += '\"dataset_uuid\" : \"' + @resource[:image_uuid] + '\",'
+    
     # $zonedefjson += '\"max_physical_memory\" : \"' + @resource[:max_physical_memory] + '\",'
     # $zonedefjson += '\"quota\" : \"' + @resource[:quota] + '\",'
-     #
-     $zonedefjson += '\"nics\" : [ {'
-     $zonedefjson += '\"nic_tag\" : \"admin\",'
-     $zonedefjson += '\"ip\" : \"' + @resource[:ip] + '\",'
-     $zonedefjson += '\"netmask\" : \"' + @resource[:netmask] + '\",'
-     $zonedefjson += '\"gateway\" : \"' + @resource[:gateway] + '\"'
-     $zonedefjson += ' } ],'
-     $zonedefjson += '\"resolvers\" : [\"' + @resource[:resolvers] + '\"]'
+    #
+    $zonedefjson += '\"nics\" : [ {'
+    $zonedefjson += '\"nic_tag\" : \"admin\",'
+    $zonedefjson += '\"ip\" : \"' + @resource[:ip] + '\",'
+    $zonedefjson += '\"netmask\" : \"' + @resource[:netmask] + '\",'
+    $zonedefjson += '\"gateway\" : \"' + @resource[:gateway] + '\"'
+    $zonedefjson += ' } ],'
+    $zonedefjson += '\"resolvers\" : [\"' + @resource[:resolvers] + '\"]'
     $zonedefjson += ' }'
 
     $zonedeffile = '/tmp/' + resource[:aliasname] + '.zonedef'

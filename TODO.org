@@ -17,10 +17,25 @@
 - [ ] documentation
 - [ ] puppet package structure
 - [ ] netif integration
+  - not possible to trivially operate large amount of nics, at the
+    moment it seems sensible to implement at a maximum two
+  - all properties "overkill" at the moment, necessary are
+  - [ ] if will be fixed
+  - [ ] nic_tag
+  - [ ] IP
+  - [ ] netmask
+  - [ ] gw
+  - [ ] resolvers (array!)
+  - [ ] DHCP srv
+- [ ] add NIC
+- [ ] update NIC
+
+
 - [ ] are all defaults sensible
 
 
 *** errors
+
 
 - [X] max_swap without function, parameter -> property
 
@@ -29,6 +44,10 @@
 ** 0.3.0 - infrastructure operations 
 
 - [ ] archive VMs
+- [ ] complete nic properties
+- [ ] nic operation for more than two nics
+- [ ] VLAN for nics
+
 
 
 * VARIOUS FEATURE REQUESTS
@@ -51,3 +70,8 @@
   values, to commit sth wich is valid, but not what operator requested
   in BAD IDEA (TM)
 - [ ] why is joyent symbol???
+
+
+* ADMIN
+
+- [ ] CHANGES file
