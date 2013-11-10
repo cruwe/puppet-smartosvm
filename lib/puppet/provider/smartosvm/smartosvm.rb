@@ -1,3 +1,8 @@
+# Copyright 2013, Christopher J. Ruwe <cjr@cruwe.de>
+#
+# This program is free software. It may be redistributed under the
+# 2-clause BSD license.
+
 Puppet::Type.type(:smartosvm).provide(:smartosvm) do
   desc "Provider for SmartOS Virtual Machines."
 
@@ -217,7 +222,6 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
         
        # if the nic has been touched, commit
        if nic_0_touched == true
-         notice("i am here" + nic_0_json_file)
          nic_0_json += '} ] }'
          shell('-c', 'echo ' + nic_0_json + ' > ' + nic_0_json_file)
          shell('-c', 'vmadm update ' + uuid + ' -f ' + nic_0_json_file)
@@ -228,7 +232,6 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
          nic_1_json += '{ \"update_nics\": [ {'
          nic_1_json += '\"mac\": \"' + nics_1_mac + '\"'
        else
-         notice("i am here")
          nic_1_json += '{ \"add_nics\": [ {'
          nic_1_json += '\"interface\": \"net1\"'
        end
@@ -270,7 +273,6 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
         
        # if the nic has been touched, commit
        if nic_1_touched == true
-         notice("i am here" + nic_1_json_file)
          nic_1_json += '} ] }'
          shell('-c', 'echo ' + nic_1_json + ' > ' + nic_1_json_file)
          shell('-c', 'vmadm update ' + uuid + ' -f ' + nic_1_json_file)

@@ -1,3 +1,9 @@
+# Copyright 2013, Christopher J. Ruwe <cjr@cruwe.de>
+#
+# This program is free software. It may be redistributed under the
+# 2-clause BSD license.
+
+
 module Puppet
   newtype(:smartosvm) do
 
