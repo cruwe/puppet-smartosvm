@@ -1,4 +1,3 @@
-
 * MILESTONES
 
 ** 0.1.0 - operable for zone OS virtualized machines
@@ -17,21 +16,38 @@
 - [ ] documentation
 - [ ] puppet package structure
 - [ ] netif integration
-- [ ] are all defaults sensible
+  - [ ] needs to be decided if more than two NICs are reasonable and
+        feasible for automatic creation.
+        the problem is how to get the information from list command
+        without knowing beforehand how many NICS exist 
+- all properties "overkill" at the moment, necessary are
+  - [X] nic_tag
+  - [X] IP
+  - [X] netmask
+  - [X] gw
+  - [ ] resolvers (array!)
+  - [X] DHCP srv
+- [X] add NIC
+- [X] update NIC
+- [ ] destroy NIC ???
 
+- [ ] are all defaults sensible?
 
 *** errors
 
-- [ ] max_swap without function, do'nt understand why
+- [X] max_swap without function, parameter -> property
 
 ** 0.2.0 - operable for KVM virtualized machines
 
 ** 0.3.0 - infrastructure operations 
 
 - [ ] archive VMs
+- [ ] complete nic properties
+- [ ] nic operation for more than two nics
+- [ ] VLAN for nics
 
 
-* VARIOUS FEATURE REQUESTS
+* VARIOUS DESIRABLE FEATURE
 
 - [ ] proper naming of memory variables phys, lock and virt
 - [ ] make update ops flushable
@@ -51,3 +67,8 @@
   values, to commit sth wich is valid, but not what operator requested
   in BAD IDEA (TM)
 - [ ] why is joyent symbol???
+
+
+* ADMIN
+
+- [ ] CHANGES file
