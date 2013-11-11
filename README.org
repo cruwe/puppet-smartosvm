@@ -1,0 +1,56 @@
+* puppet-smartosvm
+
+A type and provider for the  management of SmartOS virtual machines
+
+** Installation
+
+place the puppet-smartosvm/lib tree into your puppet module path
+
+** Project state / TODOs
+
+in preparation for release 0.1.0, cf. TODO.org
+
+** License
+
+2-clause BSD, cf. LICENSE
+
+** Operation
+
+Place something like
+
+#+begin_src 
+   smartosvm {'test' :
+     ensure => 'present',
+     state => 'running',
+     aliasname => 'test',
+     brand => 'joyent',
+     image_uuid => '17c98640-1fdb-11e3-bf51-3708ce78e75a',
+     dns_domain => 'cruwe.de',
+     resolver => '192.168.178.1',
+     nics_0_ip => '192.168.178.117',
+     nics_0_netmask => '255.255.255.25',
+     nics_0_gateway => '192.168.178.1',
+     nics_1_ip => '10.0.0.1',
+     nics_1_netmask => '255.255.255.0',
+     cpu_cap => '20',
+     cpu_shares => '100',
+     max_lwps => '2000',
+     max_locked_memory => '512',
+     max_physical_memory => '256',
+     max_swap => '756',
+     tmpfs => '128',
+     quota => '10',
+     zfs_io_priority => '100',
+     zfs_root_compression => 'on',
+     zfs_root_recsize => '64k',
+     }
+#+end_src
+
+somewhere into your site.pp
+
+For purposes of this provider, aliasname is MANDATORY and MUST BE
+UNIQUE. Likewise MANDATORY are brand, image_uuid and, for the time
+being, dns_doman and resolver.
+
+ATTENTION: At the moment, for a successful creation, puppet agent
+needs to be run two times - I do not know why

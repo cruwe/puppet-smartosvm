@@ -2,40 +2,73 @@
 
 ** 0.1.0 - operable for zone OS virtualized machines
 
-*** primaries
+*** methods
 
 - [X] exists?
 - [X] enabled?
-- [ ] destroy method ???
+- [ ] destroy method
+  
+  At the moment, I do not want a destroy method. With infrastructure
+  operations in mind, I only want to archive virtual machines. The
+  transition from 'present' to 'archived' is trivial, however, I have
+  no ide how to perform the transition (and case disamibuation) from
+  either 'absent' or 'archived' to 'present'.
 
-*** secondaries
+
+*** properties
 
 - [X] vmadm properties getter/setter
 - [X] valid memory settings change (lock <= phys <= virt)
-- [X] zfs properties inaccesible via vmadm
-- [ ] documentation
-- [ ] puppet package structure
-- [ ] netif integration
-  - [ ] needs to be decided if more than two NICs are reasonable and
-        feasible for automatic creation.
-        the problem is how to get the information from list command
-        without knowing beforehand how many NICS exist 
-- all properties "overkill" at the moment, necessary are
+- [X] basic zfs properties
+- [ ] are all defaults sensible?
+
+- [ ] NIC integration
+
+  NIC integration poses one major problem. Currently, I have not
+  figured out how to correctly populate all instance properties from
+  multiple commands such as 'vmadm list -o <...>', 'zfs list -o
+  <...>', 'vmadm get <uuid> ( | json -a <someprop>)'.
+
+  So, the instances method relies on 'vmadm list'. This works quite
+  well, but it is impossible to operate on an arbitrary number of
+  NICs, as it is not possible to determine the number of NICs existing
+  on the virtual machine.
+
+  What I would like to have is declarations like "nics_ips => [
+  'X.X.X.X', 'Y.Y.Y.Y' ]" and the same for all other nics properties
+  of vmadm(1M). Instead, I have a primitively deterimined that for
+  the moment two NICs need to suffice.
+
+- basic properties
   - [X] nic_tag
   - [X] IP
   - [X] netmask
   - [X] gw
-  - [ ] resolvers (array!)
+  - [ ] resolvers
+    - this is a property better managed from the virtual machine,
+      only necessary for creating to facilitate operations from
+      "inside" the virtual machine
   - [X] DHCP srv
 - [X] add NIC
 - [X] update NIC
-- [ ] destroy NIC ???
+- [ ] destroy NIC - see above
 
-- [ ] are all defaults sensible?
+- are some properties layering violations ???
+  - [ ] hostname
+  - [ ] dns_domain
+  - [ ] resolvers - see above
+
 
 *** errors
 
-- [X] max_swap without function, parameter -> property
+- [ ] cannot convert nil into string error on create
+- [ ] two runs necessary for creation and property application
+
+*** structure
+
+- [ ] documentation
+- [X] puppet package structure
+
 
 ** 0.2.0 - operable for KVM virtualized machines
 
@@ -43,19 +76,20 @@
 
 - [ ] archive VMs
 - [ ] complete nic properties
-- [ ] nic operation for more than two nics
-- [ ] VLAN for nics
+
 
 
 * VARIOUS DESIRABLE FEATURE
 
-- [ ] proper naming of memory variables phys, lock and virt
-- [ ] make update ops flushable
+- [ ] proper naming of memory variables swap := virt
+- [ ] make all update ops flushable
 - [ ] ZFS checksum property
 - [ ] ZFS copies property
 - [ ] ZFS dedup property
 - [ ] ZFS atime property
 - [ ] ZFS checksum property
+- [ ] fs_allowd for zones
+- [ ] specify zpool at creation time
 - [ ] imgadm dependency resoultion if image is missing on hosting
   machine
 - [ ] replace image uuid with "speaking" name of image
@@ -68,7 +102,3 @@
   in BAD IDEA (TM)
 - [ ] why is joyent symbol???
 
-
-* ADMIN
-
-- [ ] CHANGES file

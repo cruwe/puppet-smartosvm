@@ -9,12 +9,10 @@ module Puppet
 
     ensurable
 
-    feature :enableable, "The provider can enable and disable the service",
-            :methods => [:disable,
-                         :enable,
-                         :enabled?]
-
-
+    # feature :enableable, "The provider can enable and disable the service",
+    #         :methods => [:disable,
+    #                      :enable,
+    #                      :enabled?]
 
 #----------------------------------------------------------------------#
 # state property
@@ -80,9 +78,9 @@ end
       defaultto 'zones'
     end
         
-# #----------------------------------------------------------------------#
-# # properties - mutable
-# #----------------------------------------------------------------------#
+#----------------------------------------------------------------------#
+# properties - mutable
+#----------------------------------------------------------------------#
 
     newproperty(:cpu_cap) do
       desc "Sets a limit on the amount of CPU time that can be used by
@@ -103,7 +101,7 @@ end
       newvalues(/[[:digit:]]+/)
     end
 
-    #ATTENTION: This field does not seem to be gettable, probalby
+    #ATTENTION: This field does not seem to be gettable, probably
     #workaround via zonecfg or zoneadm necessary
     newproperty(:fs_allowed) do
       desc "This option allows you to specify filesystem types this
@@ -213,8 +211,6 @@ end
             ONLY FOR ZONES."
      end
 
-
-
 #----------------------------------------------------------------------#
 # networking interfaces and properties 
 #----------------------------------------------------------------------#
@@ -280,12 +276,10 @@ end
     # will stay parameter as this setting is more sensibly managed
     # from inside a virtual machine, but necessary at first for
     # machine operation
-    newparam(:resolvers) do
+    newparam(:resolver) do
       desc "For OS VMs, this value sets the resolvers which get put
            into /etc/resolv.conf. For KVM VMs these will get passed as
            the resolvers with DHCP responses."
     end
-
-
   end
 end

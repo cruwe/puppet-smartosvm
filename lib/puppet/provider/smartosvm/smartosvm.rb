@@ -351,7 +351,7 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
     @property_hash[:cpu_cap]
   end
   def cpu_cap=(value)
-   vmadm(:update, @property_hash[:uuid], 'cpucap=' + value.to_s)
+   vmadm(:update, @property_hash[:uuid], 'cpu_cap=' + value.to_s)
   end
 
 
@@ -429,7 +429,8 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
 
   #this needs to be reimplemented so that zfs is not executed every time
   def zfs_root_compression
-    zfs(:get, '-Ho', 'value', 'compression', zpool.to_s + '/' + uuid.to_s)
+    # zfs get regulary returns with trailing \n, needs to be removed
+    zfs(:get, '-Ho', 'value', 'compression', zpool.to_s + '/' + uuid).rstrip
   end
   def zfs_root_compression=(value)
     zfs(:set, 'compression=' + value.to_s, zpool.to_s + '/' + uuid.to_s)
@@ -437,7 +438,7 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
 
   #this needs to be reimplemented so that zfs is not executed every time
   def zfs_root_recsize
-    zfs(:get, '-Ho', 'value', 'recordsize', zpool.to_s + '/' + uuid.to_s)
+    zfs(:get, '-Ho', 'value', 'recordsize', zpool.to_s + '/' + uuid.to_s).rstrip
   end
   def zfs_root_recsize=(value)
     zfs(:set, 'recordsize=' + value.to_s, zpool.to_s + '/' + uuid.to_s)
@@ -538,20 +539,13 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
     @property_flush[:nics_1_dhcp_server] = value
   end
 
-    #.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-
-
-  def resolvers
-    @property_hash[:resolver]
-  end
-
-
 #----------------------------------------------------------------------#
 # create method - very dirty and relies on constucting json as flat
 # file and feeding that via /tmp to vmadm 
 #----------------------------------------------------------------------#
 
-  #TODO: find out why all calls to @resource return BUT
-  #@resource[:aliasname] and why ONLY joyent is evaluated as symbol 
+  # TODO: find out why all calls to @resource return BUT
+  # @resource[:aliasname] and why ONLY joyent is evaluated as symbol 
 
   def create
     $zonedefjson = '{'
@@ -559,17 +553,7 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
     $zonedefjson += '\"hostname\" : \"' + resource[:aliasname] + "." + @resource[:dns_domain] +  '\",' 
     $zonedefjson += '\"brand\" : \"' + @resource[:brand].to_s + '\",'
     $zonedefjson += '\"dataset_uuid\" : \"' + @resource[:image_uuid] + '\",'
-    
-    # $zonedefjson += '\"max_physical_memory\" : \"' + @resource[:max_physical_memory] + '\",'
-    # $zonedefjson += '\"quota\" : \"' + @resource[:quota] + '\",'
-    #
-    $zonedefjson += '\"nics\" : [ {'
-    $zonedefjson += '\"nic_tag\" : \"admin\",'
-    $zonedefjson += '\"ip\" : \"' + @resource[:ip] + '\",'
-    $zonedefjson += '\"netmask\" : \"' + @resource[:netmask] + '\",'
-    $zonedefjson += '\"gateway\" : \"' + @resource[:gateway] + '\"'
-    $zonedefjson += ' } ],'
-    $zonedefjson += '\"resolvers\" : [\"' + @resource[:resolvers] + '\"]'
+    $zonedefjson += '\"resolvers\" : [\"' + @resource[:resolver] + '\"]'
     $zonedefjson += ' }'
 
     $zonedeffile = '/tmp/' + resource[:aliasname] + '.zonedef'
@@ -577,11 +561,4 @@ Puppet::Type.type(:smartosvm).provide(:smartosvm) do
     shell('-c', 'echo ' + $zonedefjson + ' > ' + $zonedeffile)
     shell('-c', 'vmadm create -f ' + $zonedeffile)
   end
-
-
-
-#  def destroy
-#    vmadm(:destroy, @resource[:name])
-#  end#
-
 end
